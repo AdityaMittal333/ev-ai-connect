@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Zap, Menu, X, User, Home, MapPin, Plus } from "lucide-react";
 import { useState } from "react";
 
-export default function Layout({ children }) {
+export default function Layout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
 

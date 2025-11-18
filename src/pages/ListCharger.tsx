@@ -33,7 +33,7 @@ export default function ListCharger() {
     power: "",
     price: "",
     description: "",
-    amenities: [],
+    amenities: [] as string[],
   });
 
   const amenitiesList = [
@@ -45,7 +45,7 @@ export default function ListCharger() {
     "Wheelchair Accessible",
   ];
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     toast.success("Charger listed successfully! Our AI will verify and activate it shortly.");
   };
