@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useCreateStation } from "@/hooks/useStations";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,19 +25,35 @@ import {
   Sparkles,
   CheckCircle2,
   Home,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function ListCharger() {
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const createStation = useCreateStation();
+
   const [formData, setFormData] = useState({
     name: "",
     address: "",
+    city: "",
     chargerType: "",
+    connectorType: "",
     power: "",
     price: "",
     description: "",
     amenities: [] as string[],
+    operatingHoursStart: "06:00",
+    operatingHoursEnd: "22:00",
   });
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast.error("Please sign in to list a charger");
+      navigate("/auth");
+    }
+  }, [user, authLoading, navigate]);
 
   const amenitiesList = [
     "Covered Parking",
@@ -45,9 +64,51 @@ export default function ListCharger() {
     "Wheelchair Accessible",
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const chargerTypes = [
+    { value: "AC Level 1", label: "AC Level 1" },
+    { value: "AC Level 2", label: "AC Level 2" },
+    { value: "DC Fast Charge", label: "DC Fast Charge" },
+  ];
+
+  const connectorTypes = [
+    { value: "Type 2", label: "Type 2" },
+    { value: "CCS", label: "CCS" },
+    { value: "CHAdeMO", label: "CHAdeMO" },
+    { value: "Type 1", label: "Type 1" },
+  ];
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast.success("Charger listed successfully! Our AI will verify and activate it shortly.");
+    
+    if (!formData.name || !formData.address || !formData.city || !formData.chargerType || 
+        !formData.connectorType || !formData.power || !formData.price) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
+    const powerNum = parseFloat(formData.power);
+    const priceNum = parseFloat(formData.price.replace("₹", ""));
+
+    if (isNaN(powerNum) || isNaN(priceNum)) {
+      toast.error("Please enter valid numbers for power and price");
+      return;
+    }
+
+    await createStation.mutateAsync({
+      name: formData.name,
+      description: formData.description || undefined,
+      address: formData.address,
+      city: formData.city,
+      charger_type: formData.chargerType,
+      connector_type: formData.connectorType,
+      power_kw: powerNum,
+      price_per_kwh: priceNum,
+      amenities: formData.amenities.length > 0 ? formData.amenities : undefined,
+      operating_hours_start: formData.operatingHoursStart,
+      operating_hours_end: formData.operatingHoursEnd,
+    });
+
+    navigate("/dashboard");
   };
 
   const benefits = [
@@ -67,6 +128,14 @@ export default function ListCharger() {
       description: "All users are verified and screened for your safety",
     },
   ];
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen py-8">
@@ -126,23 +195,16 @@ export default function ListCharger() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="chargerType">
-                      Charger Type <span className="text-destructive">*</span>
+                    <Label htmlFor="city">
+                      City <span className="text-destructive">*</span>
                     </Label>
-                    <Select
-                      value={formData.chargerType}
-                      onValueChange={(value) => setFormData({ ...formData, chargerType: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select charger type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="type2-ac">Type 2 AC</SelectItem>
-                        <SelectItem value="ccs-dc">CCS DC</SelectItem>
-                        <SelectItem value="chademo">CHAdeMO</SelectItem>
-                        <SelectItem value="type1">Type 1</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      id="city"
+                      placeholder="e.g., Bangalore"
+                      value={formData.city}
+                      onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                      required
+                    />
                   </div>
                 </div>
 
@@ -165,14 +227,59 @@ export default function ListCharger() {
 
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
+                    <Label htmlFor="chargerType">
+                      Charger Type <span className="text-destructive">*</span>
+                    </Label>
+                    <Select
+                      value={formData.chargerType}
+                      onValueChange={(value) => setFormData({ ...formData, chargerType: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select charger type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {chargerTypes.map((type) => (
+                          <SelectItem key={type.value} value={type.value}>
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="connectorType">
+                      Connector Type <span className="text-destructive">*</span>
+                    </Label>
+                    <Select
+                      value={formData.connectorType}
+                      onValueChange={(value) => setFormData({ ...formData, connectorType: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select connector type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {connectorTypes.map((type) => (
+                          <SelectItem key={type.value} value={type.value}>
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
                     <Label htmlFor="power">
-                      Power Output <span className="text-destructive">*</span>
+                      Power Output (kW) <span className="text-destructive">*</span>
                     </Label>
                     <div className="relative">
                       <Zap className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
                       <Input
                         id="power"
-                        placeholder="e.g., 22 kW"
+                        type="number"
+                        placeholder="e.g., 22"
                         value={formData.power}
                         onChange={(e) => setFormData({ ...formData, power: e.target.value })}
                         className="pl-10"
@@ -183,13 +290,14 @@ export default function ListCharger() {
 
                   <div className="space-y-2">
                     <Label htmlFor="price">
-                      Price per kWh <span className="text-destructive">*</span>
+                      Price per kWh (₹) <span className="text-destructive">*</span>
                     </Label>
                     <div className="relative">
                       <DollarSign className="absolute left-3 top-3 w-5 h-5 text-muted-foreground" />
                       <Input
                         id="price"
-                        placeholder="₹12"
+                        type="number"
+                        placeholder="e.g., 12"
                         value={formData.price}
                         onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                         className="pl-10"
@@ -271,12 +379,23 @@ export default function ListCharger() {
                 </Card>
 
                 <div className="flex gap-4 pt-4">
-                  <Button type="submit" size="lg" className="flex-1 gradient-primary">
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                    List My Charger
-                  </Button>
-                  <Button type="button" size="lg" variant="outline">
-                    Save as Draft
+                  <Button 
+                    type="submit" 
+                    size="lg" 
+                    className="flex-1 gradient-primary"
+                    disabled={createStation.isPending}
+                  >
+                    {createStation.isPending ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Listing...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 mr-2" />
+                        List My Charger
+                      </>
+                    )}
                   </Button>
                 </div>
               </form>
