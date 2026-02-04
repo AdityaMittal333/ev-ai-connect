@@ -21,75 +21,32 @@ import {
   TrendingDown,
   Sparkles,
   Filter,
+  Loader2,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-
-const mockStations = [
-  {
-    id: 1,
-    name: "Green Energy Hub",
-    address: "Koramangala, Bangalore",
-    distance: "0.8 km",
-    price: "₹12/kWh",
-    rating: 4.8,
-    reviews: 124,
-    available: true,
-    chargerType: "Type 2 AC",
-    power: "22 kW",
-    aiScore: 95,
-    greenScore: 88,
-    estimatedTime: "45 min",
-  },
-  {
-    id: 2,
-    name: "Solar Charge Point",
-    address: "Indiranagar, Bangalore",
-    distance: "1.2 km",
-    price: "₹10/kWh",
-    rating: 4.9,
-    reviews: 89,
-    available: true,
-    chargerType: "CCS DC",
-    power: "50 kW",
-    aiScore: 92,
-    greenScore: 95,
-    estimatedTime: "30 min",
-  },
-  {
-    id: 3,
-    name: "Quick Charge Station",
-    address: "Whitefield, Bangalore",
-    distance: "2.5 km",
-    price: "₹15/kWh",
-    rating: 4.7,
-    reviews: 156,
-    available: false,
-    chargerType: "Type 2 AC",
-    power: "11 kW",
-    aiScore: 88,
-    greenScore: 75,
-    estimatedTime: "60 min",
-  },
-  {
-    id: 4,
-    name: "Home Charger Plus",
-    address: "HSR Layout, Bangalore",
-    distance: "1.8 km",
-    price: "₹8/kWh",
-    rating: 5.0,
-    reviews: 67,
-    available: true,
-    chargerType: "Type 2 AC",
-    power: "7.4 kW",
-    aiScore: 90,
-    greenScore: 92,
-    estimatedTime: "90 min",
-  },
-];
+import { useStations } from "@/hooks/useStations";
+import { useProfile } from "@/hooks/useProfile";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
+  const { data: stations, isLoading } = useStations();
+  const { data: profile } = useProfile();
+  const { user } = useAuth();
+
+  const filteredStations = stations?.filter((station) => {
+    const matchesSearch = 
+      station.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      station.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      station.city.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    if (filterType === "available") return matchesSearch && station.is_available;
+    if (filterType === "fast") return matchesSearch && Number(station.power_kw) >= 50;
+    if (filterType === "green") return matchesSearch && (station.green_score || 0) >= 80;
+    
+    return matchesSearch;
+  }) || [];
 
   return (
     <div className="min-h-screen py-8">
@@ -111,8 +68,12 @@ export default function Dashboard() {
                   <Battery className="w-6 h-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Battery Level</p>
-                  <p className="text-2xl font-bold">68%</p>
+                  <p className="text-sm text-muted-foreground">
+                    {user ? "Sessions Completed" : "Battery Level"}
+                  </p>
+                  <p className="text-2xl font-bold">
+                    {user ? profile?.total_sessions || 0 : "68%"}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -125,8 +86,12 @@ export default function Dashboard() {
                   <Navigation className="w-6 h-6 text-success" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Range Available</p>
-                  <p className="text-2xl font-bold">142 km</p>
+                  <p className="text-sm text-muted-foreground">
+                    {user ? "Energy Used" : "Range Available"}
+                  </p>
+                  <p className="text-2xl font-bold">
+                    {user ? `${Number(profile?.total_kwh_charged || 0).toFixed(0)} kWh` : "142 km"}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -140,7 +105,7 @@ export default function Dashboard() {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Green Score</p>
-                  <p className="text-2xl font-bold">85/100</p>
+                  <p className="text-2xl font-bold">{profile?.green_score || 85}/100</p>
                 </div>
               </div>
             </CardContent>
@@ -191,94 +156,112 @@ export default function Dashboard() {
               </h2>
             </div>
 
-            {mockStations.map((station) => (
-              <Card
-                key={station.id}
-                className={`glass-card hover:shadow-lg transition-all duration-300 ${
-                  !station.available ? "opacity-60" : ""
-                }`}
-              >
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <CardTitle className="text-xl mb-1">{station.name}</CardTitle>
-                      <CardDescription className="flex items-center gap-1 text-base">
-                        <MapPin className="w-4 h-4" />
-                        {station.address} • {station.distance}
-                      </CardDescription>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              </div>
+            ) : filteredStations.length > 0 ? (
+              filteredStations.map((station) => (
+                <Card
+                  key={station.id}
+                  className={`glass-card hover:shadow-lg transition-all duration-300 ${
+                    !station.is_available ? "opacity-60" : ""
+                  }`}
+                >
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <CardTitle className="text-xl mb-1">{station.name}</CardTitle>
+                        <CardDescription className="flex items-center gap-1 text-base">
+                          <MapPin className="w-4 h-4" />
+                          {station.address}, {station.city}
+                        </CardDescription>
+                      </div>
+                      {station.is_available ? (
+                        <Badge variant="default" className="bg-success">
+                          Available
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary">In Use</Badge>
+                      )}
                     </div>
-                    {station.available ? (
-                      <Badge variant="default" className="bg-success">
-                        Available
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Price</p>
+                        <p className="font-semibold text-lg">₹{station.price_per_kwh}/kWh</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Power</p>
+                        <p className="font-semibold text-lg flex items-center gap-1">
+                          <Zap className="w-4 h-4 text-primary" />
+                          {station.power_kw} kW
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Charger Type</p>
+                        <p className="font-semibold">{station.charger_type}</p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Connector</p>
+                        <p className="font-semibold">{station.connector_type}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4 mb-4 pb-4 border-b border-border">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+                        <span className="font-semibold">{Number(station.avg_rating || 0).toFixed(1)}</span>
+                        <span className="text-sm text-muted-foreground">
+                          ({station.total_reviews || 0} reviews)
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 mb-4">
+                      <Badge variant="outline" className="flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        AI Score: {station.ai_score || 0}
                       </Badge>
-                    ) : (
-                      <Badge variant="secondary">In Use</Badge>
-                    )}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Price</p>
-                      <p className="font-semibold text-lg">{station.price}</p>
+                      <Badge variant="outline" className="flex items-center gap-1">
+                        <TrendingDown className="w-3 h-3 text-success" />
+                        Green: {station.green_score || 0}
+                      </Badge>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Est. Time</p>
-                      <p className="font-semibold text-lg flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        {station.estimatedTime}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Charger Type</p>
-                      <p className="font-semibold">{station.chargerType}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Power</p>
-                      <p className="font-semibold flex items-center gap-1">
-                        <Zap className="w-4 h-4 text-primary" />
-                        {station.power}
-                      </p>
-                    </div>
-                  </div>
 
-                  <div className="flex items-center gap-4 mb-4 pb-4 border-b border-border">
-                    <div className="flex items-center gap-1">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-semibold">{station.rating}</span>
-                      <span className="text-sm text-muted-foreground">
-                        ({station.reviews} reviews)
-                      </span>
+                    <div className="flex gap-2">
+                      <Link to={`/station/${station.id}`} className="flex-1">
+                        <Button className="w-full" variant={station.is_available ? "default" : "secondary"}>
+                          View Details
+                        </Button>
+                      </Link>
+                      {station.is_available && (
+                        <Button className="gradient-primary">
+                          <Navigation className="w-4 h-4 mr-2" />
+                          Navigate
+                        </Button>
+                      )}
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 mb-4">
-                    <Badge variant="outline" className="flex items-center gap-1">
-                      <Sparkles className="w-3 h-3" />
-                      AI Score: {station.aiScore}
-                    </Badge>
-                    <Badge variant="outline" className="flex items-center gap-1">
-                      <TrendingDown className="w-3 h-3 text-success" />
-                      Green: {station.greenScore}
-                    </Badge>
-                  </div>
-
-                  <div className="flex gap-2">
-                    <Link to={`/station/${station.id}`} className="flex-1">
-                      <Button className="w-full" variant={station.available ? "default" : "secondary"}>
-                        View Details
-                      </Button>
-                    </Link>
-                    {station.available && (
-                      <Button className="gradient-primary">
-                        <Navigation className="w-4 h-4 mr-2" />
-                        Navigate
-                      </Button>
-                    )}
-                  </div>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              <Card className="glass-card">
+                <CardContent className="py-12 text-center">
+                  <Zap className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-lg font-medium mb-2">No charging stations found</p>
+                  <p className="text-muted-foreground mb-4">
+                    {searchQuery 
+                      ? "Try adjusting your search or filters" 
+                      : "Be the first to list a charger in your area!"}
+                  </p>
+                  <Link to="/list-charger">
+                    <Button className="gradient-primary">List Your Charger</Button>
+                  </Link>
                 </CardContent>
               </Card>
-            ))}
+            )}
           </div>
 
           <div className="lg:sticky lg:top-20 h-fit">

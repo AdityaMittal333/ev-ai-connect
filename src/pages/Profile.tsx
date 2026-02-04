@@ -1,3 +1,8 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
+import { useUserBookings } from "@/hooks/useBookings";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -16,43 +21,21 @@ import {
   DollarSign,
   Clock,
   Shield,
+  Loader2,
 } from "lucide-react";
+import { format } from "date-fns";
 
 export default function Profile() {
-  const userStats = {
-    name: "Priya Sharma",
-    email: "priya.sharma@email.com",
-    memberSince: "January 2024",
-    totalCharges: 45,
-    totalEarnings: "₹12,450",
-    rating: 4.9,
-    greenScore: 92,
-    chargersListed: 1,
-  };
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const { data: profile, isLoading: profileLoading } = useProfile();
+  const { data: bookings, isLoading: bookingsLoading } = useUserBookings();
 
-  const recentCharges = [
-    {
-      station: "Green Energy Hub",
-      date: "2 days ago",
-      cost: "₹240",
-      energy: "20 kWh",
-      duration: "45 min",
-    },
-    {
-      station: "Solar Charge Point",
-      date: "5 days ago",
-      cost: "₹180",
-      energy: "18 kWh",
-      duration: "35 min",
-    },
-    {
-      station: "Home Charger Plus",
-      date: "1 week ago",
-      cost: "₹160",
-      energy: "20 kWh",
-      duration: "90 min",
-    },
-  ];
+  useEffect(() => {
+    if (!authLoading && !user) {
+      navigate("/auth");
+    }
+  }, [user, authLoading, navigate]);
 
   const achievements = [
     { icon: Leaf, title: "Eco Warrior", description: "Charged during 50+ renewable peaks" },
@@ -60,6 +43,22 @@ export default function Profile() {
     { icon: Zap, title: "Power User", description: "Completed 45 charging sessions" },
     { icon: Shield, title: "Verified Member", description: "Completed identity verification" },
   ];
+
+  if (authLoading || profileLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-muted-foreground">Profile not found</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen py-8">
@@ -73,17 +72,17 @@ export default function Profile() {
                     <div className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                       <User className="w-12 h-12 text-primary" />
                     </div>
-                    <h2 className="text-2xl font-bold mb-1">{userStats.name}</h2>
-                    <p className="text-sm text-muted-foreground mb-3">{userStats.email}</p>
+                    <h2 className="text-2xl font-bold mb-1">{profile.full_name || "User"}</h2>
+                    <p className="text-sm text-muted-foreground mb-3">{user?.email}</p>
                     <Badge variant="secondary" className="mb-2">
                       <Calendar className="w-3 h-3 mr-1" />
-                      Member since {userStats.memberSince}
+                      Member since {format(new Date(profile.created_at), "MMMM yyyy")}
                     </Badge>
-                    <div className="flex items-center justify-center gap-1 mt-3">
-                      <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                      <span className="font-semibold">{userStats.rating}</span>
-                      <span className="text-sm text-muted-foreground">rating</span>
-                    </div>
+                    {profile.is_host && (
+                      <Badge variant="default" className="ml-2 bg-success">
+                        Host
+                      </Badge>
+                    )}
                   </div>
 
                   <Separator className="my-6" />
@@ -92,21 +91,21 @@ export default function Profile() {
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm text-muted-foreground">Green Score</span>
-                        <span className="font-semibold">{userStats.greenScore}/100</span>
+                        <span className="font-semibold">{profile.green_score || 0}/100</span>
                       </div>
-                      <Progress value={userStats.greenScore} className="h-2" />
+                      <Progress value={profile.green_score || 0} className="h-2" />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 pt-4">
                       <div className="text-center p-3 bg-muted/30 rounded-lg">
                         <Zap className="w-5 h-5 text-primary mx-auto mb-1" />
-                        <p className="text-2xl font-bold">{userStats.totalCharges}</p>
-                        <p className="text-xs text-muted-foreground">Total Charges</p>
+                        <p className="text-2xl font-bold">{profile.total_sessions || 0}</p>
+                        <p className="text-xs text-muted-foreground">Total Sessions</p>
                       </div>
                       <div className="text-center p-3 bg-muted/30 rounded-lg">
-                        <MapPin className="w-5 h-5 text-secondary mx-auto mb-1" />
-                        <p className="text-2xl font-bold">{userStats.chargersListed}</p>
-                        <p className="text-xs text-muted-foreground">Chargers Listed</p>
+                        <Battery className="w-5 h-5 text-secondary mx-auto mb-1" />
+                        <p className="text-2xl font-bold">{Number(profile.total_kwh_charged || 0).toFixed(0)}</p>
+                        <p className="text-xs text-muted-foreground">kWh Charged</p>
                       </div>
                     </div>
                   </div>
@@ -157,8 +156,10 @@ export default function Profile() {
                         <DollarSign className="w-5 h-5 text-success" />
                       </div>
                       <div>
-                        <p className="text-sm text-muted-foreground">Total Earnings</p>
-                        <p className="text-2xl font-bold">{userStats.totalEarnings}</p>
+                        <p className="text-sm text-muted-foreground">Total Spent</p>
+                        <p className="text-2xl font-bold">
+                          ₹{bookings?.reduce((acc, b) => acc + Number(b.actual_cost || b.estimated_cost || 0), 0).toFixed(0) || 0}
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -172,7 +173,7 @@ export default function Profile() {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">Total Energy</p>
-                        <p className="text-2xl font-bold">890 kWh</p>
+                        <p className="text-2xl font-bold">{Number(profile.total_kwh_charged || 0).toFixed(0)} kWh</p>
                       </div>
                     </div>
                   </CardContent>
@@ -186,7 +187,7 @@ export default function Profile() {
                       </div>
                       <div>
                         <p className="text-sm text-muted-foreground">CO₂ Saved</p>
-                        <p className="text-2xl font-bold">245 kg</p>
+                        <p className="text-2xl font-bold">{Number(profile.co2_saved_kg || 0).toFixed(0)} kg</p>
                       </div>
                     </div>
                   </CardContent>
@@ -199,38 +200,59 @@ export default function Profile() {
                   <CardDescription>Your latest charging sessions</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    {recentCharges.map((charge, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
-                      >
-                        <div className="flex-1">
-                          <p className="font-semibold mb-1">{charge.station}</p>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
-                              {charge.date}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3" />
-                              {charge.duration}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Battery className="w-3 h-3" />
-                              {charge.energy}
-                            </span>
+                  {bookingsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    </div>
+                  ) : bookings && bookings.length > 0 ? (
+                    <div className="space-y-4">
+                      {bookings.slice(0, 5).map((booking) => (
+                        <div
+                          key={booking.id}
+                          className="flex items-center justify-between p-4 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors"
+                        >
+                          <div className="flex-1">
+                            <p className="font-semibold mb-1">{booking.station?.name || "Unknown Station"}</p>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              <span className="flex items-center gap-1">
+                                <Calendar className="w-3 h-3" />
+                                {format(new Date(booking.booking_date), "MMM d, yyyy")}
+                              </span>
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3 h-3" />
+                                {booking.start_time} - {booking.end_time}
+                              </span>
+                              {booking.estimated_kwh && (
+                                <span className="flex items-center gap-1">
+                                  <Battery className="w-3 h-3" />
+                                  {booking.estimated_kwh} kWh
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-lg font-bold">
+                              ₹{booking.actual_cost || booking.estimated_cost || 0}
+                            </p>
+                            <Badge variant={booking.status === "completed" ? "default" : "secondary"}>
+                              {booking.status}
+                            </Badge>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className="text-lg font-bold">{charge.cost}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <Button className="w-full mt-4" variant="outline">
-                    View All History
-                  </Button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <Zap className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>No charging sessions yet</p>
+                      <p className="text-sm">Book your first charging session to get started!</p>
+                    </div>
+                  )}
+                  {bookings && bookings.length > 5 && (
+                    <Button className="w-full mt-4" variant="outline">
+                      View All History
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
 
@@ -249,28 +271,28 @@ export default function Profile() {
                     <div>
                       <div className="flex items-center justify-between mb-2">
                         <span className="text-sm font-medium">Renewable Energy Usage</span>
-                        <span className="font-semibold">72%</span>
+                        <span className="font-semibold">{profile.green_score || 0}%</span>
                       </div>
-                      <Progress value={72} className="h-2" />
+                      <Progress value={profile.green_score || 0} className="h-2" />
                       <p className="text-xs text-muted-foreground mt-1">
-                        You charged during renewable peak hours 32 times
+                        Based on charging during renewable peak hours
                       </p>
                     </div>
 
                     <div className="grid md:grid-cols-3 gap-4">
                       <div className="p-4 bg-success/5 rounded-lg border border-success/20">
                         <Leaf className="w-5 h-5 text-success mb-2" />
-                        <p className="text-2xl font-bold mb-1">32</p>
+                        <p className="text-2xl font-bold mb-1">{profile.total_sessions || 0}</p>
                         <p className="text-xs text-muted-foreground">Green Charges</p>
                       </div>
                       <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
                         <TrendingUp className="w-5 h-5 text-primary mb-2" />
-                        <p className="text-2xl font-bold mb-1">₹1,200</p>
+                        <p className="text-2xl font-bold mb-1">₹{((profile.green_score || 0) * 10).toFixed(0)}</p>
                         <p className="text-xs text-muted-foreground">Green Rewards</p>
                       </div>
                       <div className="p-4 bg-secondary/5 rounded-lg border border-secondary/20">
                         <Shield className="w-5 h-5 text-secondary mb-2" />
-                        <p className="text-2xl font-bold mb-1">245 kg</p>
+                        <p className="text-2xl font-bold mb-1">{Number(profile.co2_saved_kg || 0).toFixed(0)} kg</p>
                         <p className="text-xs text-muted-foreground">CO₂ Prevented</p>
                       </div>
                     </div>

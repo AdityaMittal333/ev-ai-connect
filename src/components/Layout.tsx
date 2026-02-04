@@ -1,11 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Zap, Menu, X, User, Home, MapPin, Plus } from "lucide-react";
+import { Zap, Menu, X, User, Home, MapPin, Plus, LogOut, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
+  const { user, loading, signOut } = useAuth();
 
   const navigation = [
     { name: "Home", href: "/", icon: Home },
@@ -13,6 +15,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { name: "List Your Charger", href: "/list-charger", icon: Plus },
     { name: "Profile", href: "/profile", icon: User },
   ];
+
+  const handleSignOut = async () => {
+    await signOut();
+    setMobileMenuOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -50,12 +57,32 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </div>
 
             <div className="hidden md:flex items-center gap-3">
-              <Button variant="ghost" size="sm">
-                Sign In
-              </Button>
-              <Button variant="default" size="sm" className="gradient-primary">
-                Get Started
-              </Button>
+              {loading ? (
+                <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
+              ) : user ? (
+                <>
+                  <span className="text-sm text-muted-foreground">
+                    {user.email}
+                  </span>
+                  <Button variant="ghost" size="sm" onClick={handleSignOut}>
+                    <LogOut className="w-4 h-4 mr-2" />
+                    Sign Out
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link to="/auth">
+                    <Button variant="ghost" size="sm">
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link to="/auth">
+                    <Button variant="default" size="sm" className="gradient-primary">
+                      Get Started
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
 
             <button
@@ -90,12 +117,30 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 );
               })}
               <div className="flex flex-col gap-2 pt-3 border-t border-border">
-                <Button variant="ghost" size="sm" className="w-full">
-                  Sign In
-                </Button>
-                <Button variant="default" size="sm" className="w-full gradient-primary">
-                  Get Started
-                </Button>
+                {user ? (
+                  <>
+                    <p className="text-sm text-muted-foreground px-4 py-2">
+                      {user.email}
+                    </p>
+                    <Button variant="ghost" size="sm" className="w-full" onClick={handleSignOut}>
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign Out
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="ghost" size="sm" className="w-full">
+                        Sign In
+                      </Button>
+                    </Link>
+                    <Link to="/auth" onClick={() => setMobileMenuOpen(false)}>
+                      <Button variant="default" size="sm" className="w-full gradient-primary">
+                        Get Started
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
