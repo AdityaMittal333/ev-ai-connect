@@ -14,16 +14,306 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      bookings: {
+        Row: {
+          actual_cost: number | null
+          actual_kwh: number | null
+          booking_date: string
+          created_at: string
+          end_time: string
+          estimated_cost: number | null
+          estimated_kwh: number | null
+          id: string
+          payment_status: string | null
+          start_time: string
+          station_id: string
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          actual_cost?: number | null
+          actual_kwh?: number | null
+          booking_date: string
+          created_at?: string
+          end_time: string
+          estimated_cost?: number | null
+          estimated_kwh?: number | null
+          id?: string
+          payment_status?: string | null
+          start_time: string
+          station_id: string
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          actual_cost?: number | null
+          actual_kwh?: number | null
+          booking_date?: string
+          created_at?: string
+          end_time?: string
+          estimated_cost?: number | null
+          estimated_kwh?: number | null
+          id?: string
+          payment_status?: string | null
+          start_time?: string
+          station_id?: string
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_station_id_fkey"
+            columns: ["station_id"]
+            isOneToOne: false
+            referencedRelation: "charging_stations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "bookings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      charging_stations: {
+        Row: {
+          address: string
+          ai_score: number | null
+          amenities: string[] | null
+          avg_rating: number | null
+          charger_type: string
+          city: string
+          connector_type: string
+          created_at: string
+          description: string | null
+          green_score: number | null
+          host_id: string
+          id: string
+          image_url: string | null
+          is_available: boolean | null
+          is_verified: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          operating_hours_end: string | null
+          operating_hours_start: string | null
+          power_kw: number
+          price_per_kwh: number
+          state: string | null
+          total_bookings: number | null
+          total_reviews: number | null
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          ai_score?: number | null
+          amenities?: string[] | null
+          avg_rating?: number | null
+          charger_type: string
+          city: string
+          connector_type: string
+          created_at?: string
+          description?: string | null
+          green_score?: number | null
+          host_id: string
+          id?: string
+          image_url?: string | null
+          is_available?: boolean | null
+          is_verified?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          operating_hours_end?: string | null
+          operating_hours_start?: string | null
+          power_kw: number
+          price_per_kwh: number
+          state?: string | null
+          total_bookings?: number | null
+          total_reviews?: number | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          ai_score?: number | null
+          amenities?: string[] | null
+          avg_rating?: number | null
+          charger_type?: string
+          city?: string
+          connector_type?: string
+          created_at?: string
+          description?: string | null
+          green_score?: number | null
+          host_id?: string
+          id?: string
+          image_url?: string | null
+          is_available?: boolean | null
+          is_verified?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          operating_hours_end?: string | null
+          operating_hours_start?: string | null
+          power_kw?: number
+          price_per_kwh?: number
+          state?: string | null
+          total_bookings?: number | null
+          total_reviews?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "charging_stations_host_id_fkey"
+            columns: ["host_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          battery_capacity_kwh: number | null
+          co2_saved_kg: number | null
+          created_at: string
+          full_name: string | null
+          green_score: number | null
+          id: string
+          is_host: boolean | null
+          phone: string | null
+          total_kwh_charged: number | null
+          total_sessions: number | null
+          updated_at: string
+          user_id: string
+          vehicle_model: string | null
+          vehicle_type: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          battery_capacity_kwh?: number | null
+          co2_saved_kg?: number | null
+          created_at?: string
+          full_name?: string | null
+          green_score?: number | null
+          id?: string
+          is_host?: boolean | null
+          phone?: string | null
+          total_kwh_charged?: number | null
+          total_sessions?: number | null
+          updated_at?: string
+          user_id: string
+          vehicle_model?: string | null
+          vehicle_type?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          battery_capacity_kwh?: number | null
+          co2_saved_kg?: number | null
+          created_at?: string
+          full_name?: string | null
+          green_score?: number | null
+          id?: string
+          is_host?: boolean | null
+          phone?: string | null
+          total_kwh_charged?: number | null
+          total_sessions?: number | null
+          updated_at?: string
+          user_id?: string
+          vehicle_model?: string | null
+          vehicle_type?: string | null
+        }
+        Relationships: []
+      }
+      reviews: {
+        Row: {
+          booking_id: string | null
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          station_id: string
+          user_id: string
+        }
+        Insert: {
+          booking_id?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          station_id: string
+          user_id: string
+        }
+        Update: {
+          booking_id?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          station_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_station_id_fkey"
+            columns: ["station_id"]
+            isOneToOne: false
+            referencedRelation: "charging_stations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reviews_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +440,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "moderator", "user"],
+    },
   },
 } as const
