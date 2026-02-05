@@ -43,7 +43,7 @@ export function useStations() {
         .from("charging_stations")
         .select(`
           *,
-          host:profiles!charging_stations_host_id_fkey(full_name, avatar_url)
+          host:profiles_public!charging_stations_host_id_fkey(full_name, avatar_url)
         `)
         .order("created_at", { ascending: false });
       
@@ -57,17 +57,29 @@ export function useStation(id: string) {
   return useQuery({
     queryKey: ["station", id],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get the station data
+      const { data: station, error: stationError } = await supabase
         .from("charging_stations")
-        .select(`
-          *,
-          host:profiles!charging_stations_host_id_fkey(full_name, avatar_url, phone)
-        `)
+        .select("*")
         .eq("id", id)
         .maybeSingle();
       
-      if (error) throw error;
-      return data as Station & { host: { full_name: string | null; avatar_url: string | null; phone: string | null } };
+      if (stationError) throw stationError;
+      if (!station) return null;
+
+      // Get public host info from the secure view
+      const { data: host, error: hostError } = await supabase
+        .from("profiles_public")
+        .select("full_name, avatar_url")
+        .eq("id", station.host_id)
+        .maybeSingle();
+      
+      if (hostError) throw hostError;
+      
+      return {
+        ...station,
+        host: host ? { full_name: host.full_name, avatar_url: host.avatar_url, phone: null } : null
+      } as Station & { host: { full_name: string | null; avatar_url: string | null; phone: string | null } };
     },
     enabled: !!id
   });
