@@ -27,6 +27,8 @@ import { Link } from "react-router-dom";
 import { useStations } from "@/hooks/useStations";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
+import { AIInsightsPanel } from "@/components/AIInsightsPanel";
+import { DemandForecastChart } from "@/components/DemandForecastChart";
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -144,8 +146,8 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <div className="grid lg:grid-cols-2 gap-6">
-          <div className="space-y-4">
+        <div className="grid lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-2xl font-bold">
                 AI Recommended for You
@@ -264,48 +266,9 @@ export default function Dashboard() {
             )}
           </div>
 
-          <div className="lg:sticky lg:top-20 h-fit">
-            <Card className="glass-card overflow-hidden">
-              <div className="aspect-square bg-muted/30 flex items-center justify-center relative">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20" />
-                <div className="relative z-10 text-center p-8">
-                  <MapPin className="w-16 h-16 text-primary mx-auto mb-4" />
-                  <p className="text-lg font-semibold mb-2">Interactive Map</p>
-                  <p className="text-sm text-muted-foreground">
-                    Map integration would display all nearby charging stations with real-time availability
-                  </p>
-                </div>
-              </div>
-            </Card>
-
-            <Card className="glass-card mt-6">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-primary" />
-                  AI Insights
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                  <p className="text-sm font-medium mb-1">Best Time to Charge</p>
-                  <p className="text-xs text-muted-foreground">
-                    Renewable energy peak at 2:00 PM - 4:00 PM today
-                  </p>
-                </div>
-                <div className="p-4 bg-success/5 rounded-lg border border-success/20">
-                  <p className="text-sm font-medium mb-1">Battery Health Tip</p>
-                  <p className="text-xs text-muted-foreground">
-                    Your battery is in optimal condition. Charging to 80% extends lifespan.
-                  </p>
-                </div>
-                <div className="p-4 bg-secondary/5 rounded-lg border border-secondary/20">
-                  <p className="text-sm font-medium mb-1">Traffic Update</p>
-                  <p className="text-xs text-muted-foreground">
-                    Light traffic on route to nearest station - ideal time to charge
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="space-y-6 lg:sticky lg:top-20 h-fit">
+            <AIInsightsPanel />
+            <DemandForecastChart />
           </div>
         </div>
       </div>
