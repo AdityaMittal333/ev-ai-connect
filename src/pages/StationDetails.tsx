@@ -40,6 +40,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { format } from "date-fns";
+import { StationAIAnalysis } from "@/components/StationAIAnalysis";
 
 export default function StationDetails() {
   const { id } = useParams();
@@ -246,29 +247,10 @@ export default function StationDetails() {
                     Renewable energy availability during charging hours
                   </p>
                 </div>
-
-                <div className="grid md:grid-cols-2 gap-4 mt-6">
-                  <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                    <p className="text-sm font-medium mb-1 flex items-center gap-2">
-                      <Battery className="w-4 h-4" />
-                      Battery Health Impact
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Optimal charging speed for long-term battery health
-                    </p>
-                  </div>
-                  <div className="p-4 bg-success/5 rounded-lg border border-success/20">
-                    <p className="text-sm font-medium mb-1 flex items-center gap-2">
-                      <TrendingDown className="w-4 h-4" />
-                      Cost Optimization
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Competitive pricing in this area
-                    </p>
-                  </div>
-                </div>
               </CardContent>
             </Card>
+
+            <StationAIAnalysis station={station} />
 
             {station.amenities && station.amenities.length > 0 && (
               <Card className="glass-card">
