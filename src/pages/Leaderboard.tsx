@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
-import { motion } from "framer-motion";
+
 
 const BADGES = [
   { id: "first_charge", icon: Zap, title: "First Spark", description: "Complete your first charge", threshold: 1, field: "total_sessions" as const, color: "text-primary" },
