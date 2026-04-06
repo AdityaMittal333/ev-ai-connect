@@ -29,6 +29,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { AIInsightsPanel } from "@/components/AIInsightsPanel";
 import { DemandForecastChart } from "@/components/DemandForecastChart";
+import { StationMap } from "@/components/StationMap";
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
