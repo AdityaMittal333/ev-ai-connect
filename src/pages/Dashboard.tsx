@@ -147,6 +147,13 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
+        {/* Interactive Map */}
+        {stations && stations.length > 0 && (
+          <div className="mb-8">
+            <StationMap stations={stations} />
+          </div>
+        )}
+
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">
             <div className="flex items-center justify-between mb-4">

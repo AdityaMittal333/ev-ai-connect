@@ -111,9 +111,7 @@ export default function Profile() {
                     </div>
                   </div>
 
-                  <Button className="w-full mt-6" variant="outline">
-                    Edit Profile
-                  </Button>
+                  <EditProfileDialog profile={profile} />
                 </CardContent>
               </Card>
 
