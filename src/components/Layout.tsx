@@ -13,6 +13,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { name: "Home", href: "/", icon: Home },
     { name: "Find Chargers", href: "/dashboard", icon: MapPin },
     { name: "List Your Charger", href: "/list-charger", icon: Plus },
+    { name: "My Bookings", href: "/my-bookings", icon: Calendar },
+    { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
     { name: "Profile", href: "/profile", icon: User },
   ];
 
