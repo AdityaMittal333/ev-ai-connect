@@ -29,6 +29,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { useAuth } from "@/contexts/AuthContext";
 import { AIInsightsPanel } from "@/components/AIInsightsPanel";
 import { DemandForecastChart } from "@/components/DemandForecastChart";
+import { StationMap } from "@/components/StationMap";
 
 export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -145,6 +146,13 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Interactive Map */}
+        {stations && stations.length > 0 && (
+          <div className="mb-8">
+            <StationMap stations={stations} />
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-4">

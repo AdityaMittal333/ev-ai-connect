@@ -11,6 +11,8 @@ import StationDetails from "./pages/StationDetails";
 import ListCharger from "./pages/ListCharger";
 import Profile from "./pages/Profile";
 import Auth from "./pages/Auth";
+import Leaderboard from "./pages/Leaderboard";
+import MyBookings from "./pages/MyBookings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -30,6 +32,8 @@ const App = () => (
               <Route path="/station/:id" element={<StationDetails />} />
               <Route path="/list-charger" element={<ListCharger />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/my-bookings" element={<MyBookings />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

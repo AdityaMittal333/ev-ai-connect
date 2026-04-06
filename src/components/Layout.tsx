@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Zap, Menu, X, User, Home, MapPin, Plus, LogOut, Loader2 } from "lucide-react";
+import { Zap, Menu, X, User, Home, MapPin, Plus, LogOut, Loader2, Trophy, Calendar } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -13,6 +13,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { name: "Home", href: "/", icon: Home },
     { name: "Find Chargers", href: "/dashboard", icon: MapPin },
     { name: "List Your Charger", href: "/list-charger", icon: Plus },
+    { name: "My Bookings", href: "/my-bookings", icon: Calendar },
+    { name: "Leaderboard", href: "/leaderboard", icon: Trophy },
     { name: "Profile", href: "/profile", icon: User },
   ];
 
